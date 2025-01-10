@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: student-app-api-service
+spec:
+  selector:
+    app: student-app-api  # Chọn các pod với label "app: student-app-api"
+  ports:
+    - protocol: TCP
+      port: 80              # Port exposed cho LoadBalancer
+      targetPort: 8080       # Port mà pod đang lắng nghe
+  type: LoadBalancer

@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: student-app-client
+spec:
+  selector:
+    matchLabels:
+      app: student-app-client
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: student-app-client
+    spec:
+      containers:
+        - name: student-app-client
+          image: nnhao2003/student-app-client
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+          resources:
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
