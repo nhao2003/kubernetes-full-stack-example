@@ -6,7 +6,7 @@ spec:
   selector:
     matchLabels:
       app: student-app-api
-  replicas: 3  # Thêm replicas để load balancer có thể phân phối
+  replicas: 3
   template:
     metadata:
       labels:

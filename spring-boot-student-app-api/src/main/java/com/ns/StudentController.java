@@ -12,10 +12,19 @@ import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 
 @RestController
-@AllArgsConstructor
 public class StudentController {
+    private final List<Student> students = new ArrayList<>();
 
-    private final StudentRepository studentRepository;
+    public StudentController() {
+        students.add(new Student("Nguyen", "A"));
+        students.add(new Student( "Tran", "B"));
+        students.add(new Student("Le", "C"));
+        students.add(new Student("Pham", "D"));
+        students.add(new Student("Hoang", "E"));
+        students.add(new Student("Vu", "F"));
+        students.add(new Student("Dang", "G"));
+        students.add(new Student("Do", "H"));
+    }
 
     @GetMapping("/")
     public String hello(HttpServletRequest request) {
@@ -40,19 +49,23 @@ public class StudentController {
     @GetMapping("/students")
     public ResponseEntity<List<Student>> getAllStudents(@RequestParam(required = false) String firstName) {
         try {
-            List<Student> students = new ArrayList<Student>();
+            List<Student> result = new ArrayList<>();
 
-            if (firstName == null)
-                students.addAll(studentRepository.findAll());
-            else
-                studentRepository.findByFirstNameContaining(firstName)
-                        .forEach(students::add);
+            if (firstName == null) {
+                result.addAll(students);
+            } else {
+                for (Student student : students) {
+                    if (student.getFirstName().contains(firstName)) {
+                        result.add(student);
+                    }
+                }
+            }
 
-            if (students.isEmpty()) {
+            if (result.isEmpty()) {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
             }
 
-            return new ResponseEntity<>(students, HttpStatus.OK);
+            return new ResponseEntity<>(result, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -60,7 +73,10 @@ public class StudentController {
 
     @GetMapping("/students/{id}")
     public ResponseEntity<Student> getStudentById(@PathVariable("id") String id) {
-        Optional<Student> studentData = studentRepository.findById(id);
+        Optional<Student> studentData = students.stream()
+                .filter(student -> student.getId().equals(id))
+                .findFirst();
+
         if (studentData.isPresent()) {
             return new ResponseEntity<>(studentData.get(), HttpStatus.OK);
         } else {
@@ -71,8 +87,10 @@ public class StudentController {
     @PostMapping("/students")
     public ResponseEntity<Student> createStudent(@RequestBody Student student) {
         try {
-            Student _student = studentRepository.save(new Student(student.getFirstName(), student.getLastName()));
-            return new ResponseEntity<>(_student, HttpStatus.CREATED);
+            // Tạo ID giả lập
+            student.setId(String.valueOf(students.size() + 1));
+            students.add(student);
+            return new ResponseEntity<>(student, HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.EXPECTATION_FAILED);
         }
@@ -80,13 +98,15 @@ public class StudentController {
 
     @PutMapping("/students/{id}")
     public ResponseEntity<Student> updateStudent(@PathVariable("id") String id, @RequestBody Student student) {
-        Optional<Student> studentData = studentRepository.findById(id);
+        Optional<Student> studentData = students.stream()
+                .filter(s -> s.getId().equals(id))
+                .findFirst();
 
         if (studentData.isPresent()) {
             Student _student = studentData.get();
             _student.setFirstName(student.getFirstName());
             _student.setLastName(student.getLastName());
-            return new ResponseEntity<>(studentRepository.save(_student), HttpStatus.OK);
+            return new ResponseEntity<>(_student, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -95,7 +115,7 @@ public class StudentController {
     @DeleteMapping("/students/{id}")
     public ResponseEntity<HttpStatus> deleteStudent(@PathVariable("id") String id) {
         try {
-            studentRepository.deleteById(id);
+            students.removeIf(student -> student.getId().equals(id));
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.EXPECTATION_FAILED);
@@ -105,12 +125,11 @@ public class StudentController {
     @DeleteMapping("/students")
     public ResponseEntity<HttpStatus> deleteAllStudents() {
         try {
-            studentRepository.deleteAll();
+            students.clear();
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.EXPECTATION_FAILED);
         }
-
     }
 
 }

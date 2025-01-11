@@ -12,9 +12,9 @@ spec:
             pathType: ImplementationSpecific
             backend:
               service:
-                name: fe-app-service
+                name: student-app-client-service
                 port:
-                  number: 3000
+                  number: 80
           - path: /api/?(.*)
             pathType: ImplementationSpecific
             backend:
